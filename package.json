@@ -1,0 +1,19 @@
+{
+  "name": "retell-embed-widget",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Minimal embeddable web widget to start a Retell AI webcall",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "build": "echo 'No build step needed'"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.19.2",
+    "eventemitter3": "^5.0.1",
+    "livekit-client": "^2.0.10",
+    "retell-client-js-sdk": "^2.0.7"
+  }
+}

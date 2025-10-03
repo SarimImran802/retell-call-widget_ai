@@ -1,0 +1,65 @@
+:root {
+  --rf-color: #1f6feb;
+  --rf-bg: #0b1020;
+  --rf-text: #e6efff;
+  --rf-danger: #e25858;
+  --rf-muted: #8aa4d6;
+  --rf-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji"; background: #0b1020; color: var(--rf-text); }
+
+#retell-widget-floating-button {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  background: var(--rf-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--rf-shadow);
+  cursor: pointer;
+  z-index: 2147483647;
+}
+
+#retell-widget-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2147483646;
+}
+
+.retell-widget-modal {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  width: 360px;
+  max-width: calc(100% - 32px);
+  border-radius: 16px;
+  box-shadow: var(--rf-shadow);
+}
+
+.retell-widget-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid #1e293b; }
+.retell-widget-title { font-weight: 600; font-size: 16px; }
+.retell-widget-close { background: transparent; border: none; color: var(--rf-muted); font-size: 18px; cursor: pointer; }
+
+.retell-widget-body { padding: 16px; }
+.retell-widget-section { background: #0b1020; border: 1px solid #1e293b; padding: 12px; border-radius: 10px; }
+.retell-widget-label { color: var(--rf-muted); font-size: 12px; margin-bottom: 6px; }
+.retell-widget-status { font-size: 14px; margin-top: 6px; }
+
+.retell-widget-actions { display: flex; gap: 10px; margin-top: 14px; }
+.retell-btn { flex: 1; padding: 10px 12px; border-radius: 10px; border: none; color: white; cursor: pointer; font-weight: 600; }
+.retell-btn-primary { background: var(--rf-color); }
+.retell-btn-danger { background: var(--rf-danger); }
+
+.retell-powered { margin-top: 12px; font-size: 12px; color: var(--rf-muted); text-align: center; }
+
+
