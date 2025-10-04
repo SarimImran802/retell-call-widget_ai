@@ -3,29 +3,15 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Retell Call Widget</title>
-    <link rel="stylesheet" href="./styles.css">
-    <!-- Import map to allow bare ESM imports in browser -->
-    <script type="importmap">
-      {
-        "imports": {
-          "eventemitter3": "https://cdn.jsdelivr.net/npm/eventemitter3@5.0.1/dist/eventemitter3.esm.min.js",
-          "livekit-client": "https://cdn.jsdelivr.net/npm/livekit-client@2.0.10/dist/livekit-client.esm.mjs",
-          "retell-client-js-sdk": "https://cdn.jsdelivr.net/npm/retell-client-js-sdk@2.0.7/dist/index.m.js"
-        }
-      }
-    </script>
-    <!-- Load Retell SDK via ESM and expose constructor globally for widget.js -->
-    <script type="module">
-      import { RetellWebClient } from 'retell-client-js-sdk';
-      window.RetellWebClient = RetellWebClient;
-      console.log('Retell ESM loaded:', typeof window.RetellWebClient);
+    <title>AI Voice Assistant</title>
+    <script>
+      // Redirect to the new home page
+      window.location.href = '/home.html';
     </script>
   </head>
   <body>
-    <div id="retell-widget-root"></div>
-    <script src="./widget.js" defer></script>
+    <p>Redirecting to AI Voice Assistant...</p>
   </body>
-  </html>
+</html>
 
 
