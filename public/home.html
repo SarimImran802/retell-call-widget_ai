@@ -296,6 +296,7 @@
         }
 
         // Don't auto-start - let user click the button
+        startBtn.addEventListener('click', startCall);
 
         stopBtn.addEventListener('click', function () {
           if (!inCall) return;
