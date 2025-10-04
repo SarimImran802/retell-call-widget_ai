@@ -67,7 +67,7 @@
       }
       
       .btn-start {
-        display: none; /* Hide start button since we auto-start */
+        display: block; /* Show start button */
       }
       
       .btn {
@@ -147,7 +147,7 @@
   <body>
     <div class="call-container">
       <h1 class="title">AI Voice Assistant</h1>
-      <p class="subtitle">Your AI agent is ready to talk</p>
+      <p class="subtitle">Click Start Call to begin your conversation</p>
       
       <div class="status-section">
         <div class="status-label">Call Status</div>
@@ -295,10 +295,7 @@
           }
         }
 
-        // Auto-start the call when page loads
-        window.addEventListener('load', function() {
-          setTimeout(startCall, 1000); // Start call 1 second after page loads
-        });
+        // Don't auto-start - let user click the button
 
         stopBtn.addEventListener('click', function () {
           if (!inCall) return;
