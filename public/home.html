@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI Voice Assistant</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { 
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      
+      .call-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 24px;
+        padding: 40px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        max-width: 400px;
+        width: 100%;
+        text-align: center;
+      }
+      
+      .title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 8px;
+      }
+      
+      .subtitle {
+        font-size: 16px;
+        color: #666;
+        margin-bottom: 32px;
+      }
+      
+      .status-section {
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+      }
+      
+      .status-label {
+        font-size: 14px;
+        color: #666;
+        font-weight: 500;
+        margin-bottom: 8px;
+      }
+      
+      .status-value {
+        font-size: 18px;
+        color: #1a1a1a;
+        font-weight: 600;
+      }
+      
+      .buttons {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+      
+      .btn {
+        flex: 1;
+        padding: 16px 24px;
+        border-radius: 16px;
+        border: none;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      }
+      
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+      
+      .btn-start {
+        background: linear-gradient(135deg, #1f6feb 0%, #0969da 100%);
+        color: white;
+      }
+      
+      .btn-stop {
+        background: linear-gradient(135deg, #e25858 0%, #d73a49 100%);
+        color: white;
+      }
+      
+      .powered-by {
+        font-size: 12px;
+        color: #999;
+      }
+      
+      .loading {
+        display: none;
+        margin-top: 16px;
+      }
+      
+      .spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #1f6feb;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+    <!-- Import map for ESM -->
+    <script type="importmap">
+      {
+        "imports": {
+          "eventemitter3": "https://cdn.jsdelivr.net/npm/eventemitter3@5.0.1/dist/eventemitter3.esm.min.js",
+          "livekit-client": "https://cdn.jsdelivr.net/npm/livekit-client@2.0.10/dist/livekit-client.esm.mjs",
+          "retell-client-js-sdk": "https://cdn.jsdelivr.net/npm/retell-client-js-sdk@2.0.7/dist/index.m.js"
+        }
+      }
+    </script>
+    <!-- Load Retell SDK -->
+    <script type="module">
+      import { RetellWebClient } from 'retell-client-js-sdk';
+      window.RetellWebClient = RetellWebClient;
+      console.log('Retell ESM loaded:', typeof window.RetellWebClient);
+    </script>
+  </head>
+  <body>
+    <div class="call-container">
+      <h1 class="title">AI Voice Assistant</h1>
+      <p class="subtitle">Start a conversation with our AI agent</p>
+      
+      <div class="status-section">
+        <div class="status-label">Call Status</div>
+        <div class="status-value" id="status">Ready to start</div>
+      </div>
+      
+      <div class="buttons">
+        <button class="btn btn-start" id="startBtn">Start Call</button>
+        <button class="btn btn-stop" id="stopBtn" disabled>End Call</button>
+      </div>
+      
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+      </div>
+      
+      <div class="powered-by">Powered by Retell AI</div>
+    </div>
+
+    <script>
+      (function () {
+        let inCall = false;
+        let retellWebClient = null;
+
+        const statusEl = document.getElementById('status');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const loadingEl = document.getElementById('loading');
+
+        function getBackendUrl() {
+          if (window.RFT_BACKEND_URL) return window.RFT_BACKEND_URL.replace(/\/$/, '');
+          return 'https://retell-call-widget-ai.vercel.app';
+        }
+
+        function apiStartSession(userId) {
+          const backend = getBackendUrl();
+          const url = backend + '/api/retell/start';
+          return fetch(url, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ userId: userId }) 
+          }).then(r => r.json());
+        }
+
+        function updateStatus(text) {
+          statusEl.textContent = text;
+        }
+
+        function showLoading(show) {
+          loadingEl.style.display = show ? 'block' : 'none';
+        }
+
+        startBtn.addEventListener('click', async function () {
+          if (inCall) return;
+          
+          updateStatus('Starting call...');
+          startBtn.disabled = true;
+          showLoading(true);
+
+          try {
+            const resp = await apiStartSession('user');
+            console.log('Session response:', resp);
+
+            if (resp && resp.error) {
+              console.error('Start session error:', resp);
+              updateStatus('Error: ' + resp.error);
+              startBtn.disabled = false;
+              showLoading(false);
+              return;
+            }
+
+            if (resp && resp.access_token) {
+              if (resp.mock) {
+                inCall = true;
+                updateStatus('Connected (demo mode)');
+                stopBtn.disabled = false;
+                showLoading(false);
+                return;
+              }
+
+              if (!window.RetellWebClient) {
+                console.error('RetellWebClient not available');
+                updateStatus('SDK not loaded');
+                startBtn.disabled = false;
+                showLoading(false);
+                return;
+              }
+
+              retellWebClient = new window.RetellWebClient();
+              
+              retellWebClient.on('call_started', () => {
+                console.log('Call started');
+                updateStatus('Call started');
+              });
+              
+              retellWebClient.on('call_ready', () => {
+                console.log('Call ready');
+                updateStatus('Connected');
+                showLoading(false);
+              });
+              
+              retellWebClient.on('call_ended', () => {
+                console.log('Call ended');
+                inCall = false;
+                updateStatus('Call ended');
+                stopBtn.disabled = true;
+                startBtn.disabled = false;
+              });
+              
+              retellWebClient.on('agent_start_talking', () => {
+                console.log('Agent talking');
+                updateStatus('Agent speaking...');
+              });
+              
+              retellWebClient.on('agent_stop_talking', () => {
+                console.log('Agent stopped');
+                updateStatus('Connected');
+              });
+              
+              retellWebClient.on('error', (err) => {
+                console.error('Retell error:', err);
+                updateStatus('Error: ' + err);
+                showLoading(false);
+              });
+
+              await retellWebClient.startCall({ accessToken: resp.access_token });
+              
+              if (retellWebClient.startAudioPlayback) {
+                await retellWebClient.startAudioPlayback().catch(e => 
+                  console.warn('Audio playback failed:', e)
+                );
+              }
+
+              inCall = true;
+              stopBtn.disabled = false;
+            } else {
+              updateStatus('No access token received');
+              startBtn.disabled = false;
+              showLoading(false);
+            }
+          } catch (error) {
+            console.error('Start call failed:', error);
+            updateStatus('Failed to start call');
+            startBtn.disabled = false;
+            showLoading(false);
+          }
+        });
+
+        stopBtn.addEventListener('click', function () {
+          if (!inCall) return;
+          
+          if (retellWebClient) {
+            retellWebClient.stopCall();
+          }
+          
+          inCall = false;
+          updateStatus('Call ended');
+          stopBtn.disabled = true;
+          startBtn.disabled = false;
+        });
+      })();
+    </script>
+  </body>
+</html>
