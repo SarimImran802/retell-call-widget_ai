@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Retell Widget</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body { height: 100%; overflow: hidden; background: transparent; }
+      
+      #retell-widget-root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+      }
+      
+      #retell-widget-floating-button {
+        position: absolute;
+        right: 10px;
+        bottom: 10px;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: #1f6feb;
+        color: white;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 10;
+      }
+      
+      #retell-widget-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 2147483646;
+      }
+      
+      .retell-widget-modal {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        width: 320px;
+        max-width: calc(100% - 32px);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+      }
+      
+      .retell-widget-header { 
+        display: flex; 
+        align-items: center; 
+        justify-content: space-between; 
+        padding: 16px 20px; 
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1); 
+      }
+      .retell-widget-title { 
+        font-weight: 600; 
+        font-size: 16px; 
+        color: #1a1a1a; 
+      }
+      .retell-widget-close { 
+        background: transparent; 
+        border: none; 
+        color: #666; 
+        font-size: 18px; 
+        cursor: pointer; 
+        padding: 4px; 
+        border-radius: 4px; 
+      }
+      .retell-widget-close:hover { 
+        background: rgba(0, 0, 0, 0.1); 
+      }
+      
+      .retell-widget-body { 
+        padding: 20px; 
+      }
+      .retell-widget-section { 
+        background: rgba(0, 0, 0, 0.05); 
+        border: 1px solid rgba(0, 0, 0, 0.1); 
+        padding: 16px; 
+        border-radius: 12px; 
+      }
+      .retell-widget-label { 
+        color: #666; 
+        font-size: 12px; 
+        margin-bottom: 8px; 
+        font-weight: 500; 
+      }
+      .retell-widget-status { 
+        font-size: 14px; 
+        margin-top: 8px; 
+        color: #1a1a1a; 
+        font-weight: 500; 
+      }
+      
+      .retell-widget-actions { 
+        display: flex; 
+        gap: 12px; 
+        margin-top: 16px; 
+      }
+      .retell-btn { 
+        flex: 1; 
+        padding: 12px 16px; 
+        border-radius: 12px; 
+        border: none; 
+        color: white; 
+        cursor: pointer; 
+        font-weight: 600; 
+        font-size: 14px; 
+        transition: all 0.2s ease; 
+      }
+      .retell-btn:hover { 
+        transform: translateY(-1px); 
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); 
+      }
+      .retell-btn-primary { 
+        background: linear-gradient(135deg, #1f6feb 0%, #0969da 100%); 
+      }
+      .retell-btn-danger { 
+        background: linear-gradient(135deg, #e25858 0%, #d73a49 100%); 
+      }
+      .retell-btn:disabled { 
+        opacity: 0.5; 
+        cursor: not-allowed; 
+        transform: none; 
+      }
+      
+      .retell-powered { 
+        margin-top: 16px; 
+        font-size: 11px; 
+        color: #999; 
+        text-align: center; 
+      }
+    </style>
+    <!-- Import map for ESM -->
+    <script type="importmap">
+      {
+        "imports": {
+          "eventemitter3": "https://cdn.jsdelivr.net/npm/eventemitter3@5.0.1/dist/eventemitter3.esm.min.js",
+          "livekit-client": "https://cdn.jsdelivr.net/npm/livekit-client@2.0.10/dist/livekit-client.esm.mjs",
+          "retell-client-js-sdk": "https://cdn.jsdelivr.net/npm/retell-client-js-sdk@2.0.7/dist/index.m.js"
+        }
+      }
+    </script>
+    <!-- Load Retell SDK -->
+    <script type="module">
+      import { RetellWebClient } from 'retell-client-js-sdk';
+      window.RetellWebClient = RetellWebClient;
+      console.log('Retell ESM loaded:', typeof window.RetellWebClient);
+    </script>
+  </head>
+  <body>
+    <div id="retell-widget-root"></div>
+    <script>
+      (function () {
+        const root = document.getElementById('retell-widget-root');
+
+        function createEl(tag, props, children) {
+          const el = document.createElement(tag);
+          if (props) Object.keys(props).forEach(function (key) { el.setAttribute(key, props[key]); });
+          if (children) children.forEach(function (child) { el.appendChild(child); });
+          return el;
+        }
+
+        function setText(el, text) { el.textContent = text; }
+
+        function createFloatingButton() {
+          const btn = createEl('button', { id: 'retell-widget-floating-button', 'aria-label': 'Talk to us' }, []);
+          setText(btn, '💬');
+          return btn;
+        }
+
+        function createModal() {
+          const backdrop = createEl('div', { id: 'retell-widget-modal-backdrop', role: 'dialog', 'aria-modal': 'true' }, []);
+          const modal = createEl('div', { class: 'retell-widget-modal' }, []);
+
+          const header = createEl('div', { class: 'retell-widget-header' }, []);
+          const title = createEl('div', { class: 'retell-widget-title' }, []);
+          setText(title, 'Talk to our AI agent');
+          const close = createEl('button', { class: 'retell-widget-close', 'aria-label': 'Close' }, []);
+          setText(close, '✕');
+          header.appendChild(title);
+          header.appendChild(close);
+
+          const body = createEl('div', { class: 'retell-widget-body' }, []);
+
+          const callSection = createEl('div', { class: 'retell-widget-section' }, []);
+          const label = createEl('div', { class: 'retell-widget-label' }, []);
+          setText(label, 'Web call status');
+          const status = createEl('div', { class: 'retell-widget-status' }, []);
+          setText(status, 'Idle');
+
+          const actions = createEl('div', { class: 'retell-widget-actions' }, []);
+          const startBtn = createEl('button', { class: 'retell-btn retell-btn-primary' }, []);
+          setText(startBtn, 'Start Call');
+          const stopBtn = createEl('button', { class: 'retell-btn retell-btn-danger', disabled: 'true' }, []);
+          setText(stopBtn, 'End Call');
+
+          actions.appendChild(startBtn);
+          actions.appendChild(stopBtn);
+          callSection.appendChild(label);
+          callSection.appendChild(status);
+          callSection.appendChild(actions);
+
+          const powered = createEl('div', { class: 'retell-powered' }, []);
+          setText(powered, 'Voice by Retell AI');
+
+          body.appendChild(callSection);
+          body.appendChild(powered);
+
+          modal.appendChild(header);
+          modal.appendChild(body);
+          backdrop.appendChild(modal);
+
+          return { backdrop: backdrop, close: close, status: status, startBtn: startBtn, stopBtn: stopBtn };
+        }
+
+        function getBackendUrl() {
+          if (window.RFT_BACKEND_URL) return window.RFT_BACKEND_URL.replace(/\/$/, '');
+          return 'https://retell-call-widget-ai.vercel.app';
+        }
+
+        function apiStartSession(userId) {
+          var backend = getBackendUrl();
+          var url = backend + '/api/retell/start';
+          return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: userId }) }).then(function (r) { return r.json(); });
+        }
+
+        function init() {
+          const button = createFloatingButton();
+          const modal = createModal();
+
+          let inCall = false;
+          let retellWebClient = null;
+
+          button.addEventListener('click', function () {
+            modal.backdrop.style.display = 'flex';
+          });
+          modal.close.addEventListener('click', function () {
+            modal.backdrop.style.display = 'none';
+          });
+
+          modal.startBtn.addEventListener('click', function () {
+            if (inCall) return;
+            setText(modal.status, 'Starting...');
+            modal.startBtn.disabled = true;
+            apiStartSession('anonymous').then(function (resp) {
+              console.log('start session response', resp);
+              if (resp && resp.error) {
+                console.error('Start session error:', resp);
+                setText(modal.status, 'Server error');
+                modal.startBtn.disabled = false;
+                return;
+              }
+              if (resp && resp.access_token) {
+                if (resp.mock) {
+                  inCall = true;
+                  setText(modal.status, 'Connected (mock)');
+                  modal.stopBtn.disabled = false;
+                  return;
+                }
+                if (!window.RetellWebClient) {
+                  console.error('RetellWebClient not available');
+                  setText(modal.status, 'SDK not loaded');
+                  modal.startBtn.disabled = false;
+                  return;
+                }
+                retellWebClient = new window.RetellWebClient();
+                retellWebClient.on('call_started', function(){ console.log('retell: call_started'); });
+                retellWebClient.on('call_ready', function(){ console.log('retell: call_ready'); });
+                retellWebClient.on('call_ended', function(){ console.log('retell: call_ended'); });
+                retellWebClient.on('agent_start_talking', function(){ console.log('retell: agent_start_talking'); });
+                retellWebClient.on('agent_stop_talking', function(){ console.log('retell: agent_stop_talking'); });
+                retellWebClient.on('error', function(err){ console.error('retell: error event', err); });
+
+                return retellWebClient.startCall({ accessToken: resp.access_token }).then(function () {
+                  inCall = true;
+                  setText(modal.status, 'Connected');
+                  modal.stopBtn.disabled = false;
+                  if (retellWebClient && typeof retellWebClient.startAudioPlayback === 'function') {
+                    retellWebClient.startAudioPlayback().catch(function(e){ console.warn('startAudioPlayback failed', e); });
+                  }
+                }).catch(function (e) {
+                  console.error('startCall failed:', e);
+                  setText(modal.status, 'Failed to start');
+                  modal.startBtn.disabled = false;
+                });
+              }
+              setText(modal.status, 'Server not configured');
+              modal.startBtn.disabled = false;
+            }).catch(function () {
+              setText(modal.status, 'Failed to start');
+              modal.startBtn.disabled = false;
+            });
+          });
+
+          modal.stopBtn.addEventListener('click', function () {
+            if (!inCall) return;
+            if (retellWebClient) retellWebClient.stopCall();
+            inCall = false;
+            setText(modal.status, 'Idle');
+            modal.stopBtn.disabled = true;
+            modal.startBtn.disabled = false;
+          });
+
+          root.appendChild(button);
+          root.appendChild(modal.backdrop);
+        }
+
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+          init();
+        } else {
+          document.addEventListener('DOMContentLoaded', init);
+        }
+      })();
+    </script>
+  </body>
+</html>
