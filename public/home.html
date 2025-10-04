@@ -202,11 +202,26 @@
         async function startCall() {
           if (inCall) return;
           
-          updateStatus('Starting call...');
+          updateStatus('Requesting microphone access...');
           startBtn.disabled = true;
           showLoading(true);
 
           try {
+            // Request microphone permission first
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+              audio: {
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true,
+                sampleRate: 24000
+              } 
+            });
+            
+            // Stop the stream immediately - we just needed permission
+            stream.getTracks().forEach(track => track.stop());
+            
+            updateStatus('Starting call...');
+            
             const resp = await apiStartSession('user');
             console.log('Session response:', resp);
 
@@ -289,7 +304,15 @@
             }
           } catch (error) {
             console.error('Start call failed:', error);
-            updateStatus('Failed to start call');
+            
+            if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+              updateStatus('Microphone access denied. Please allow microphone access and try again.');
+            } else if (error.name === 'NotFoundError') {
+              updateStatus('No microphone found. Please connect a microphone and try again.');
+            } else {
+              updateStatus('Failed to start call: ' + error.message);
+            }
+            
             startBtn.disabled = false;
             showLoading(false);
           }

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wix Integration Instructions</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .code {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Wix Integration Instructions</h1>
+    
+    <div class="warning">
+        <strong>Important:</strong> For microphone access to work properly in Wix, you need to configure the iframe with specific permissions.
+    </div>
+
+    <h2>Method 1: Custom HTML Element (Recommended)</h2>
+    <p>In your Wix site:</p>
+    <ol>
+        <li>Add a "Custom HTML" element to your page</li>
+        <li>Use this code:</li>
+    </ol>
+    
+    <div class="code">
+&lt;iframe 
+    src="https://retell-call-widget-ai.vercel.app/home.html" 
+    width="100%" 
+    height="600px" 
+    frameborder="0"
+    allow="microphone; camera"
+    allowfullscreen&gt;
+&lt;/iframe&gt;
+    </div>
+
+    <h2>Method 2: HTML Embed Code</h2>
+    <p>If using HTML embed:</p>
+    <div class="code">
+&lt;iframe 
+    src="https://retell-call-widget-ai.vercel.app/home.html" 
+    width="100%" 
+    height="600px" 
+    frameborder="0"
+    allow="microphone; camera"
+    sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-presentation"
+    allowfullscreen&gt;
+&lt;/iframe&gt;
+    </div>
+
+    <h2>Key Points:</h2>
+    <ul>
+        <li><strong>allow="microphone; camera"</strong> - This is crucial for microphone access</li>
+        <li><strong>sandbox attributes</strong> - Allow necessary permissions for the iframe</li>
+        <li><strong>HTTPS required</strong> - Both your Wix site and the widget must use HTTPS</li>
+    </ul>
+
+    <div class="success">
+        <strong>Testing:</strong> After implementing, test the microphone access by:
+        <ol>
+            <li>Clicking "Start Call"</li>
+            <li>Allowing microphone access when prompted</li>
+            <li>Speaking to test if the AI responds</li>
+        </ol>
+    </div>
+
+    <h2>Troubleshooting:</h2>
+    <ul>
+        <li><strong>No microphone prompt:</strong> Check iframe permissions and HTTPS</li>
+        <li><strong>Permission denied:</strong> User needs to manually allow microphone access</li>
+        <li><strong>AI not responding:</strong> Check browser console for errors</li>
+    </ul>
+
+    <p><strong>Direct Link:</strong> <a href="https://retell-call-widget-ai.vercel.app/home.html" target="_blank">https://retell-call-widget-ai.vercel.app/home.html</a></p>
+</body>
+</html>
