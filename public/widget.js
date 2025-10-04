@@ -63,7 +63,8 @@
 
   function getBackendUrl() {
     if (window.RFT_BACKEND_URL) return window.RFT_BACKEND_URL.replace(/\/$/, '');
-    return '';
+    // Default to Vercel URL when embedded
+    return 'https://retell-call-widget-ai.vercel.app';
   }
 
   function apiStartSession(userId) {
