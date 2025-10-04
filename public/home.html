@@ -66,6 +66,10 @@
         margin-bottom: 24px;
       }
       
+      .btn-start {
+        display: none; /* Hide start button since we auto-start */
+      }
+      
       .btn {
         flex: 1;
         padding: 16px 24px;
@@ -143,7 +147,7 @@
   <body>
     <div class="call-container">
       <h1 class="title">AI Voice Assistant</h1>
-      <p class="subtitle">Start a conversation with our AI agent</p>
+      <p class="subtitle">Your AI agent is ready to talk</p>
       
       <div class="status-section">
         <div class="status-label">Call Status</div>
@@ -195,7 +199,7 @@
           loadingEl.style.display = show ? 'block' : 'none';
         }
 
-        startBtn.addEventListener('click', async function () {
+        async function startCall() {
           if (inCall) return;
           
           updateStatus('Starting call...');
@@ -289,6 +293,11 @@
             startBtn.disabled = false;
             showLoading(false);
           }
+        }
+
+        // Auto-start the call when page loads
+        window.addEventListener('load', function() {
+          setTimeout(startCall, 1000); // Start call 1 second after page loads
         });
 
         stopBtn.addEventListener('click', function () {
